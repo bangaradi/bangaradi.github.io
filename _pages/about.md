@@ -24,7 +24,7 @@ I am Aditya Bangar, a junior undergraduate majoring in Computer Science and Engi
 My academic journey has been enriched with research experience in areas like Machine Learning, Deep Learning, Computer Vision, and Affective Computing. Recently, through coursework at IIT Kanpur, I've developed a keen interest in the study of Computer Systems, especially in the realms of Operating Systems and Parallel Computing.
 
 
-| Relevant Coursewrk||
+| Relevant Coursework||
 |-----------|------------------------------------------|
 |CS771      | Introduction to Machine Learning         | 
 |CS677      | Large Data Analysis and Visualization    |
