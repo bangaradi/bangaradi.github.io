@@ -120,6 +120,9 @@
 			case ':music':
 				goto('/music');
 				break;
+			case ':type':
+				goto('/type');
+				break;
 			case ':about':
 				goto('/about');
 				break;

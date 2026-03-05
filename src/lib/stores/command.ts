@@ -17,6 +17,7 @@ export const navItems: NavItem[] = [
 	{ label: 'notes', path: '/notes', icon: '*' },
 	{ label: 'movies', path: '/movies', icon: '@' },
 	{ label: 'music', path: '/music', icon: '&' },
+	{ label: 'type', path: '/type', icon: '%' },
 	{ label: 'about', path: '/about', icon: '?' }
 ];
 
@@ -29,6 +30,7 @@ export const commands = [
 	{ name: ':notes', description: 'Go to notes', usage: ':notes' },
 	{ name: ':movies', description: 'Go to movie reviews', usage: ':movies' },
 	{ name: ':music', description: 'Go to music gallery', usage: ':music' },
+	{ name: ':type', description: 'Go to typing test', usage: ':type' },
 	{ name: ':about', description: 'Go to about page', usage: ':about' },
 	{ name: ':scrollup', description: 'Scroll up', usage: ':scrollup' },
 	{ name: ':scrolldown', description: 'Scroll down', usage: ':scrolldown' },
