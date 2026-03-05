@@ -6,8 +6,10 @@
 	}
 </script>
 
+<svelte:window onkeydown={(e) => $showHelp && e.key === 'Escape' && close()} />
+
 {#if $showHelp}
-	<div class="overlay" onclick={close} onkeydown={(e) => e.key === 'Escape' && close()} role="dialog" tabindex="-1">
+	<div class="overlay" onclick={close} role="dialog" tabindex="-1">
 		<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
 		<div class="modal" onclick={(e) => e.stopPropagation()}>
 			<div class="header">

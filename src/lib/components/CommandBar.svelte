@@ -24,11 +24,42 @@
 	$: suggestions = getSuggestions($commandInput, $commandMode);
 	$: selectedIndex = Math.min(selectedIndex, Math.max(suggestions.length - 1, 0));
 
+	function getClickableElements(): { text: string; element: HTMLElement }[] {
+		const contentArea = document.querySelector('.content') || document.body;
+		const elements = contentArea.querySelectorAll('a, button, [onclick]');
+		const results: { text: string; element: HTMLElement }[] = [];
+		for (const el of elements) {
+			const htmlEl = el as HTMLElement;
+			if (htmlEl.offsetParent === null) continue;
+			const text = (htmlEl.textContent || '').trim();
+			if (text) results.push({ text, element: htmlEl });
+		}
+		return results;
+	}
+
 	function getSuggestions(input: string, mode: ':' | '/' | null): Suggestion[] {
 		if (!mode) return [];
 
 		if (mode === ':') {
 			const trimmed = input.slice(1).trim();
+
+			if (trimmed.startsWith('c/')) {
+				const match = trimmed.match(/^c\/([^/]*)\/?$/);
+				const query = match?.[1] || '';
+				if (!query) return [];
+				return getClickableElements()
+					.filter((item) => fuzzyMatch(query, item.text))
+					.sort((a, b) => fuzzyScore(query, b.text) - fuzzyScore(query, a.text))
+					.slice(0, 8)
+					.map((item) => ({
+						label: item.text.slice(0, 60),
+						description: `click: <${item.element.tagName.toLowerCase()}>`,
+						action: () => {
+							item.element.click();
+							close();
+						}
+					}));
+			}
 
 			if (trimmed.startsWith('open ')) {
 				const query = trimmed.slice(5).trim();
@@ -85,6 +116,20 @@
 	}
 
 	function executeCommand(cmd: string) {
+		const trimmedCmd = cmd.trim().slice(1);
+		if (trimmedCmd.startsWith('c/')) {
+			const match = trimmedCmd.match(/^c\/([^/]+)\/?$/);
+			const query = match?.[1];
+			if (query) {
+				const clickables = getClickableElements()
+					.filter((item) => fuzzyMatch(query, item.text))
+					.sort((a, b) => fuzzyScore(query, b.text) - fuzzyScore(query, a.text));
+				if (clickables.length > 0) clickables[0].element.click();
+			}
+			close();
+			return;
+		}
+
 		const parts = cmd.trim().split(/\s+/);
 		const base = parts[0];
 

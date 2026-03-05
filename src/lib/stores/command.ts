@@ -32,6 +32,7 @@ export const commands = [
 	{ name: ':music', description: 'Go to music gallery', usage: ':music' },
 	{ name: ':type', description: 'Go to typing test', usage: ':type' },
 	{ name: ':about', description: 'Go to about page', usage: ':about' },
+	{ name: ':c', description: 'Click element by fuzzy text match', usage: ':c/<text>/' },
 	{ name: ':scrollup', description: 'Scroll up', usage: ':scrollup' },
 	{ name: ':scrolldown', description: 'Scroll down', usage: ':scrolldown' },
 	{ name: ':top', description: 'Scroll to top', usage: ':top' },
