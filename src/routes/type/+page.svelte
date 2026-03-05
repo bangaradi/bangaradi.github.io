@@ -53,8 +53,8 @@
 	let caretTop = $state(0);
 	let caretVisible = $state(true);
 
-	let activeLineTop = $state(0);
 	let scrollOffset = $state(0);
+	let lastLineIndex = $state(0);
 
 	// --- Init ---
 	function shuffle<T>(arr: T[]): T[] {
@@ -88,6 +88,7 @@
 		wpm = 0;
 		accuracy = 0;
 		scrollOffset = 0;
+		lastLineIndex = 0;
 
 		const count = selectedTime === 15 ? 60 : selectedTime === 30 ? 120 : 200;
 		words = generateWords(count);
@@ -164,16 +165,38 @@
 		}
 
 		if (targetEl && wordsEl) {
+			// Determine line height from the actual rendered words
+			const allWordEls = wordsEl.querySelectorAll('.word');
+			const firstWordTop = (allWordEls[0] as HTMLElement).offsetTop;
+			let lineHeight = 0;
+			// Find the first word that's on a different line to get line height
+			for (let i = 1; i < allWordEls.length; i++) {
+				const ot = (allWordEls[i] as HTMLElement).offsetTop;
+				if (ot > firstWordTop) {
+					lineHeight = ot - firstWordTop;
+					break;
+				}
+			}
+			if (lineHeight === 0) lineHeight = 50;
+
+			// Figure out which line the current word is on
+			const currentWordTop = (allWordEls[wordIndex] as HTMLElement).offsetTop;
+			const currentLine = Math.round((currentWordTop - firstWordTop) / lineHeight);
+
+			// Scroll so that the current line is the middle (2nd) visible line
+			// Only scroll when we move to a new line, and only forward
+			if (currentLine > lastLineIndex) {
+				lastLineIndex = currentLine;
+				// Keep current line as the middle line: scroll = (currentLine - 1) * lineHeight
+				const targetScroll = Math.max(0, (currentLine - 1) * lineHeight);
+				scrollOffset = targetScroll;
+			}
+
+			// Now compute caret position relative to the container's visual area
 			const containerRect = wordsEl.getBoundingClientRect();
 			const rect = targetEl.getBoundingClientRect();
 			caretLeft = (useRight ? rect.right : rect.left) - containerRect.left;
 			caretTop = rect.top - containerRect.top;
-
-			// Smooth scroll: keep active line near top of visible area
-			const lineTop = rect.top - containerRect.top + scrollOffset;
-			if (lineTop > 40) {
-				scrollOffset = lineTop - 10;
-			}
 		}
 	}
 
@@ -466,7 +489,7 @@
 	.words-container {
 		width: 100%;
 		max-width: 700px;
-		height: 6.5rem;
+		height: 7.5rem;
 		overflow: hidden;
 		position: relative;
 		margin-bottom: 1.5rem;
