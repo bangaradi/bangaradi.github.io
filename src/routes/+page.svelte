@@ -2,9 +2,90 @@
 	import { onMount } from 'svelte';
 
 	let visible = false;
+	let particles: { x: number; y: number; char: string; opacity: number; speed: number; drift: number }[] = [];
+	let animFrame: number;
+
+	const taglines = [
+		'probably refactoring something rn',
+		'i make websites and opinions',
+		'building things that don\'t exist yet',
+		'alt-tabbing between code and cinema',
+		'perpetually in my terminal era',
+		'shipping code, reviewing films',
+		'somewhere between a bug fix and an existential crisis',
+		'ctrl+c ctrl+v enthusiast',
+		'works on my machine',
+		'todo: write a better tagline'
+	];
+
+	let tagline = $state('');
+	let showCursor = $state(true);
+
+	function getGreeting(): string {
+		const h = new Date().getHours();
+		if (h >= 5 && h < 12) return 'good morning. welcome to my corner of the internet.';
+		if (h >= 12 && h < 17) return 'good afternoon. pull up a chair.';
+		if (h >= 17 && h < 21) return 'good evening. glad you\'re here.';
+		return 'late night, huh? same.';
+	}
+
+	const greeting = getGreeting();
+	const particleChars = ['~', '.', '*', '·', '/', '`', '-'];
+
+	function initParticles() {
+		particles = Array.from({ length: 18 }, () => ({
+			x: Math.random() * 100,
+			y: Math.random() * 100,
+			char: particleChars[Math.floor(Math.random() * particleChars.length)],
+			opacity: 0.06 + Math.random() * 0.1,
+			speed: 0.015 + Math.random() * 0.03,
+			drift: (Math.random() - 0.5) * 0.02
+		}));
+	}
+
+	function animateParticles() {
+		particles = particles.map(p => {
+			let y = p.y - p.speed;
+			let x = p.x + p.drift;
+			if (y < -2) { y = 102; x = Math.random() * 100; }
+			if (x < -2) x = 102;
+			if (x > 102) x = -2;
+			return { ...p, x, y };
+		});
+		animFrame = requestAnimationFrame(animateParticles);
+	}
 
 	onMount(() => {
 		setTimeout(() => visible = true, 100);
+		initParticles();
+		animateParticles();
+
+		let cancelled = false;
+		async function typeLoop() {
+			let idx = Math.floor(Math.random() * taglines.length);
+			while (!cancelled) {
+				const text = taglines[idx];
+				// type in
+				for (let i = 0; i <= text.length; i++) {
+					if (cancelled) return;
+					tagline = text.slice(0, i);
+					await new Promise(r => setTimeout(r, 45 + Math.random() * 35));
+				}
+				// pause at end
+				await new Promise(r => setTimeout(r, 2000));
+				// erase
+				for (let i = text.length; i >= 0; i--) {
+					if (cancelled) return;
+					tagline = text.slice(0, i);
+					await new Promise(r => setTimeout(r, 25));
+				}
+				await new Promise(r => setTimeout(r, 300));
+				idx = (idx + 1) % taglines.length;
+			}
+		}
+		typeLoop();
+
+		return () => { cancelled = true; cancelAnimationFrame(animFrame); };
 	});
 
 	const recentActivity = [
@@ -34,7 +115,13 @@
 
 <div class="home" class:visible>
 	<section class="hero">
-		<pre class="ascii-name">
+		<div class="hero-inner">
+			<div class="particles" aria-hidden="true">
+				{#each particles as p}
+					<span class="particle" style="left:{p.x}%;top:{p.y}%;opacity:{p.opacity}">{p.char}</span>
+				{/each}
+			</div>
+			<pre class="ascii-name">
 {"     _       _ _ _               "}
 {"    / \\   __| (_) |_ _   _  __ _ "}
 {"   / _ \\ / _` | | __| | | |/ _` |"}
@@ -42,15 +129,10 @@
 {" /_/   \\_\\__,_|_|\\__|\\__, |\\__,_|"}
 {"                      |___/       "}
 </pre>
+		</div>
 		<div class="intro">
-			<p class="greeting">
-				<span class="prompt">$</span> echo "Hello, World!"
-			</p>
-			<p class="bio">
-				I'm <span class="highlight">Aditya Bangar</span>, a developer who builds things
-				for the web. This is my digital garden — a place for projects, thoughts,
-				reviews, and everything in between.
-			</p>
+			<p class="greeting">{greeting}</p>
+			<p class="tagline">{tagline}<span class="tagline-cursor">|</span></p>
 			<p class="hint">
 				<span class="dim">// tip: press</span> <kbd>:</kbd> <span class="dim">for commands or</span> <kbd>/</kbd> <span class="dim">to search</span>
 			</p>
@@ -127,7 +209,32 @@
 		margin-bottom: 3rem;
 	}
 
+	.hero-inner {
+		position: relative;
+		overflow: hidden;
+		scrollbar-width: none;
+	}
+
+	.hero-inner::-webkit-scrollbar {
+		display: none;
+	}
+
+	.particles {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+	}
+
+	.particle {
+		position: absolute;
+		font-family: var(--font-mono);
+		font-size: 0.7rem;
+		color: var(--accent);
+		user-select: none;
+	}
+
 	.ascii-name {
+		position: relative;
 		font-family: var(--font-mono);
 		font-size: 0.6rem;
 		color: var(--accent);
@@ -135,7 +242,7 @@
 		line-height: 1.2;
 		margin-bottom: 2rem;
 		white-space: pre;
-		overflow-x: auto;
+		overflow: hidden;
 	}
 
 	.intro {
@@ -143,27 +250,30 @@
 	}
 
 	.greeting {
-		font-family: var(--font-mono);
-		font-size: 0.9rem;
-		margin-bottom: 1rem;
-		color: var(--subtext0);
-	}
-
-	.prompt {
-		color: var(--green);
-		font-weight: 700;
-	}
-
-	.bio {
 		font-size: 1rem;
 		line-height: 1.8;
 		color: var(--text);
-		margin-bottom: 1rem;
+		margin-bottom: 0.5rem;
 	}
 
-	.highlight {
+	.tagline {
+		font-family: var(--font-mono);
+		font-size: 0.85rem;
+		color: var(--overlay0);
+		margin-bottom: 1rem;
+		font-style: italic;
+		min-height: 1.5em;
+	}
+
+	.tagline-cursor {
 		color: var(--accent);
-		font-weight: 600;
+		animation: blink 1s step-end infinite;
+		font-style: normal;
+	}
+
+	@keyframes blink {
+		0%, 100% { opacity: 1; }
+		50% { opacity: 0; }
 	}
 
 	.hint {
