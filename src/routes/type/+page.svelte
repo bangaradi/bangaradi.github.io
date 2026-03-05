@@ -270,6 +270,12 @@
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
+		// Intercept : and / for command bar — don't type them
+		if (e.key === ':' || e.key === '/') {
+			e.preventDefault();
+			inputEl?.blur();
+			return;
+		}
 		if (finished) {
 			if (e.key === 'Tab' || e.key === 'Enter') {
 				e.preventDefault();
